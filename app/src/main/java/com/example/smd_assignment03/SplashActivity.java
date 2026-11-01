@@ -1,4 +1,4 @@
-package com.example.smd_assignment_2;
+package com.example.smd_assignment03;
 
 import android.content.Intent;
 import android.os.Bundle;

@@ -1,7 +1,7 @@
-package com.example.smd_assignment_2;
+package com.example.smd_assignment03;
 
-import com.example.smd_assignment_2.models.Project;
-import com.example.smd_assignment_2.models.TaskItem;
+import com.example.smd_assignment03.models.Project;
+import com.example.smd_assignment03.models.TaskItem;
 
 import org.junit.Test;
 

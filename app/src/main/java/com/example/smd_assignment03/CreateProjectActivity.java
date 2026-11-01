@@ -1,4 +1,4 @@
-package com.example.smd_assignment_2;
+package com.example.smd_assignment03;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -12,7 +12,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.smd_assignment_2.models.Project;
+import com.example.smd_assignment03.models.Project;
 
 import java.util.ArrayList;
 import java.util.Calendar;

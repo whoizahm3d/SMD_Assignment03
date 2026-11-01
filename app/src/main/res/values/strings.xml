@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">smd_assignment_2</string>
+    <string name="app_name">SMD_Assignment03</string>
 
     <string name="splash_title">TaskFlow</string>
     <string name="splash_subtitle">Project Management</string>

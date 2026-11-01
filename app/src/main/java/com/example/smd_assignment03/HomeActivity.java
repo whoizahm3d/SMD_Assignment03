@@ -1,4 +1,4 @@
-package com.example.smd_assignment_2;
+package com.example.smd_assignment03;
 
 import android.content.Intent;
 import android.text.InputType;
@@ -22,8 +22,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.IntentCompat;
 import android.os.Bundle;
 
-import com.example.smd_assignment_2.models.Project;
-import com.example.smd_assignment_2.models.TaskItem;
+import com.example.smd_assignment03.models.Project;
+import com.example.smd_assignment03.models.TaskItem;
 
 import java.util.ArrayList;
 

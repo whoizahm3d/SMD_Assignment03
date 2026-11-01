@@ -1,4 +1,4 @@
-package com.example.smd_assignment_2;
+package com.example.smd_assignment03;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -27,8 +27,8 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import com.example.smd_assignment_2.models.Project;
-import com.example.smd_assignment_2.models.TaskItem;
+import com.example.smd_assignment03.models.Project;
+import com.example.smd_assignment03.models.TaskItem;
 
 import java.util.ArrayList;
 import java.util.Locale;

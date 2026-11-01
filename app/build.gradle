@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'com.example.smd_assignment_2'
+    namespace 'com.example.smd_assignment03'
     compileSdkVersion 37
     buildToolsVersion "37.0.0"
 
     defaultConfig {
-        applicationId "com.example.smd_assignment_2"
+        applicationId "com.example.smd_assignment03"
         minSdkVersion 24
         targetSdkVersion 36
         versionCode 1

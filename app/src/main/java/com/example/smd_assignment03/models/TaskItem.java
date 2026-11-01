@@ -1,4 +1,4 @@
-package com.example.smd_assignment_2.models;
+package com.example.smd_assignment03.models;
 
 import java.io.Serializable;
 
