@@ -1,229 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/page_bg"
     android:orientation="vertical"
-    android:background="@color/page_bg">
+    android:padding="16dp">
 
-    <ScrollView
+    <!-- Top Greeting -->
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/welcome_label"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/welcome_subtitle"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp" />
 
-            <!-- Header -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_welcome_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Hi, Ali"
-                        android:textColor="@color/text_primary"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_welcome_name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Are you ready to grow now, or work?"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/iv_settings"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/ic_settings"
-                    android:contentDescription="@string/toast_settings" />
-
-            </RelativeLayout>
-
-            <!-- Workspace card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_card"
-                android:elevation="4dp"
-                android:padding="16dp"
-                android:layout_marginBottom="20dp">
-
-                <TextView
-                    android:id="@+id/tv_workspace_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/workspace_label"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tv_workspace_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/workspace_title"
-                    android:textColor="@color/text_primary"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:src="@drawable/ic_folder"
-                        android:contentDescription="@null" />
-
-                    <TextView
-                        android:id="@+id/tv_workspace_files"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="@string/workspace_files"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btn_new_project"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:backgroundTint="@color/bright_blue"
-                        app:backgroundTint="@color/bright_blue"
-                        android:text="@string/new_project"
-                        android:textAllCaps="false"
-                        android:textColor="@color/white"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="12dp"
-                        android:stateListAnimator="@null" />
-
-                    <Button
-                        android:id="@+id/btn_invite"
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:visibility="gone"
-                        android:text="@string/invite" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Upcoming -->
-            <TextView
-                android:id="@+id/tv_upcoming_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="@string/upcoming_label"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:id="@+id/ll_upcoming_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-        </LinearLayout>
-
-    </ScrollView>
-
-    <!-- Bottom nav -->
+    <!-- Workspace Card -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/bottom_nav_height"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_bottom_nav"
-        android:gravity="center_vertical">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <ImageButton
-            android:id="@+id/btn_nav_home"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_home"
-            android:scaleType="centerInside"
-            android:contentDescription="Home" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
 
-        <ImageButton
-            android:id="@+id/btn_nav_search"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_search"
-            android:scaleType="centerInside"
-            android:contentDescription="Search" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/workspace_label"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:textAllCaps="true" />
 
-        <ImageButton
-            android:id="@+id/btn_nav_add"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_add"
-            android:scaleType="centerInside"
-            android:contentDescription="Add" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_arrow_up_right"
+                app:tint="@color/text_muted" />
+        </RelativeLayout>
 
-        <ImageButton
-            android:id="@+id/btn_nav_notifications"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_notifications"
-            android:scaleType="centerInside"
-            android:contentDescription="Notifications" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/workspace_title"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp" />
 
-        <ImageButton
-            android:id="@+id/btn_nav_profile"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_profile"
-            android:scaleType="centerInside"
-            android:contentDescription="Profile" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/workspace_created"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
 
+        <Button
+            android:id="@+id/btn_new_project"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_btn_primary"
+            android:text="@string/new_project"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
     </LinearLayout>
+
+    <!-- Search Section -->
+    <EditText
+        android:id="@+id/et_search_projects"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="8dp"
+        android:autofillHints=""
+        android:background="@drawable/bg_search_box"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="10dp"
+        android:hint="@string/search_projects_hint"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:paddingHorizontal="12dp"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_showing_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Showing 5 projects"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <!-- Projects ListView & Empty View -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/lv_projects"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:divider="@null"
+            android:dividerHeight="12dp"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tv_empty_projects"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/no_projects_match"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </LinearLayout>

@@ -1,175 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layout_project_card"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:background="@drawable/bg_card"
-    android:padding="16dp"
-    android:layout_marginBottom="12dp"
-    android:clickable="true"
-    android:focusable="true">
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <!-- Tag chip -->
+    <TextView
+        android:id="@+id/tv_project_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_chip_purple"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="4dp"
+        android:text="User Interface"
+        android:textColor="@color/chip_purple_text"
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tv_project_tag"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:background="@drawable/bg_chip_grey"
-            android:text="UI/UX"
-            android:textColor="@color/chip_grey_text"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_due_date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:text="Due 30 May"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-    </RelativeLayout>
-
+    <!-- Project Name -->
     <TextView
         android:id="@+id/tv_project_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Project name"
+        android:layout_marginBottom="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Service Page Website"
         android:textColor="@color/text_primary"
-        android:textSize="17sp"
-        android:textStyle="bold" />
+        android:textSize="17sp" />
 
+    <!-- Description -->
     <TextView
         android:id="@+id/tv_project_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:maxLines="2"
+        android:layout_marginBottom="12dp"
         android:ellipsize="end"
-        android:text="Project description"
+        android:maxLines="2"
+        android:text="Make a page display about services for the company website..."
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
+    <!-- Task counts and percentage row -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp">
+        android:layout_marginBottom="8dp">
 
         <LinearLayout
-            android:id="@+id/ll_attachments_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/iv_attachment_1"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_attachment"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_attachment_1"
-                android:contentDescription="@null" />
-
-            <ImageView
-                android:id="@+id/iv_attachment_2"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="-10dp"
-                android:background="@drawable/bg_attachment"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_attachment_2"
-                android:contentDescription="@null" />
-
-            <TextView
-                android:id="@+id/tv_attachment_more"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="-10dp"
-                android:background="@drawable/bg_attachment"
-                android:gravity="center"
-                android:text="+2"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/iv_comment"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:src="@drawable/ic_comment"
-                android:contentDescription="@null" />
-
-            <TextView
-                android:id="@+id/tv_comment_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="14dp"
-                android:text="0"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_check_circle_outline"
+                app:tint="@color/text_muted" />
 
             <TextView
                 android:id="@+id/tv_task_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_chip_grey"
-                android:text="0 Tasks"
-                android:textColor="@color/chip_grey_text"
-                android:textSize="11sp" />
-
+                android:text="4/12 tasks"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
         </LinearLayout>
-
-    </RelativeLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <ProgressBar
-            android:id="@+id/pb_project_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="6dp"
-            android:layout_weight="1"
-            android:max="100"
-            android:progress="40"
-            android:progressTint="@color/accent_green" />
 
         <TextView
             android:id="@+id/tv_progress_percent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="40%"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:layout_alignParentEnd="true"
+            android:fontFamily="sans-serif-medium"
+            android:text="33%"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
+    </RelativeLayout>
 
-    </LinearLayout>
+    <!-- Progress bar -->
+    <ProgressBar
+        android:id="@+id/pb_project_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginBottom="12dp"
+        android:max="100"
+        android:progress="33"
+        android:progressDrawable="@drawable/progress_project" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="12dp"
+        android:background="@color/card_stroke" />
+
+    <!-- Bottom metadata row -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_attach"
+                app:tint="@color/text_muted" />
+
+            <TextView
+                android:id="@+id/tv_attachment_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="4 Attachments"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_comment"
+                app:tint="@color/text_muted" />
+
+            <TextView
+                android:id="@+id/tv_comment_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3 Comments"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Invite pill decoration -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/bg_btn_small_outline"
+            android:clickable="false"
+            android:focusable="false"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="@string/invite"
+            android:textColor="@color/text_primary"
+            android:textSize="11sp" />
+    </RelativeLayout>
 
 </LinearLayout>

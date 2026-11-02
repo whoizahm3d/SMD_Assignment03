@@ -34,11 +34,6 @@
             android:theme="@style/Theme.TaskFlow"
             tools:ignore="Instantiatable" />
 
-        <activity
-            android:name=".CreateProjectActivity"
-            android:exported="false"
-            android:theme="@style/Theme.TaskFlow" />
-
     </application>
 
 </manifest>
