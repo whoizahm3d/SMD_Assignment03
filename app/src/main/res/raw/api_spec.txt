@@ -1,0 +1,5 @@
+Login API specification
+
+POST /login with email and password.
+Returns an access token and a refresh token.
+Tokens expire after 15 minutes.

@@ -1,0 +1,5 @@
+Client briefing
+
+The client wants a clean services page in blue and red.
+Each product card must show a short description and a price.
+The first draft is due at the end of the week.

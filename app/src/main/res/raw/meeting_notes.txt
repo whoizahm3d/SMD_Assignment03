@@ -1,0 +1,5 @@
+Meeting notes
+
+- Review the header layout
+- Agree on form validation rules
+- Decide who owns the pricing table
