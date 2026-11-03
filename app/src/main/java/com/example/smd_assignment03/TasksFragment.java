@@ -1,0 +1,411 @@
+package com.example.smd_assignment03;
+
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextWatcher;
+import android.text.style.StyleSpan;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
+import com.example.smd_assignment03.models.Project;
+import com.example.smd_assignment03.models.TaskItem;
+
+import java.util.ArrayList;
+import java.util.Locale;
+
+public class TasksFragment extends Fragment implements TaskAdapter.TaskActionListener {
+
+    private static final String ARG_PROJECT_ID = "arg_project_id";
+    private String projectId;
+
+    EditText etSearchTasks;
+    TextView tvFilterStatus;
+    TextView tvFilterPriority;
+    TextView tvFilterDate;
+    TextView tvFilterSort;
+    TextView tvShowing;
+    TextView tvResetFilters;
+    ListView lvTasks;
+    LinearLayout layoutEmptyNone;
+    LinearLayout layoutEmptyFiltered;
+    Button btnAddTask;
+    Button btnEmptyAddTask;
+    Button btnEmptyResetFilters;
+
+    TaskAdapter adapter;
+    ArrayList<TaskItem> shownTasks = new ArrayList<>();
+    boolean isUpdatingText = false;
+
+    public TasksFragment() {
+    }
+
+    public static TasksFragment newInstance(String projectId) {
+        TasksFragment fragment = new TasksFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_PROJECT_ID, projectId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            projectId = getArguments().getString(ARG_PROJECT_ID);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_tasks, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        init(view);
+
+        adapter = new TaskAdapter(requireContext(), shownTasks, this);
+        lvTasks.setAdapter(adapter);
+
+        refresh();
+
+        etSearchTasks.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (isUpdatingText) {
+                    return;
+                }
+                ProjectHost host = (ProjectHost) requireActivity();
+                TaskFilterState state = host.getTaskFilterState();
+                state.query = s != null ? s.toString().trim() : "";
+                applyFilters();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        tvFilterStatus.setOnClickListener(v -> showStatusDialog());
+        tvFilterPriority.setOnClickListener(v -> showPriorityDialog());
+        tvFilterDate.setOnClickListener(v -> showDateDialog());
+        tvFilterSort.setOnClickListener(v -> showSortDialog());
+
+        tvResetFilters.setOnClickListener(v -> resetAllFilters());
+        btnEmptyResetFilters.setOnClickListener(v -> resetAllFilters());
+
+        btnAddTask.setOnClickListener(v -> {
+            ProjectHost host = (ProjectHost) requireActivity();
+            host.showTaskDialog(null);
+        });
+
+        btnEmptyAddTask.setOnClickListener(v -> {
+            ProjectHost host = (ProjectHost) requireActivity();
+            host.showTaskDialog(null);
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refresh();
+    }
+
+    public void refresh() {
+        if (!isAdded()) {
+            return;
+        }
+        if (getActivity() instanceof ProjectHost) {
+            ProjectHost host = (ProjectHost) getActivity();
+            TaskFilterState state = host.getTaskFilterState();
+
+            isUpdatingText = true;
+            if (etSearchTasks != null) {
+                etSearchTasks.setText(state.query);
+            }
+            isUpdatingText = false;
+
+            updatePillLabels();
+            applyFilters();
+        }
+    }
+
+    public void applyFilters() {
+        if (!isAdded()) {
+            return;
+        }
+        if (getActivity() instanceof ProjectHost) {
+            ProjectHost host = (ProjectHost) getActivity();
+            Project project = host.getProject();
+            TaskFilterState state = host.getTaskFilterState();
+
+            shownTasks.clear();
+            if (project != null && project.getTasks() != null) {
+                String query = state.query != null ? state.query.toLowerCase(Locale.getDefault()) : "";
+
+                for (TaskItem t : project.getTasks()) {
+                    boolean matchesQuery = query.isEmpty() || (t.getDescription() != null && t.getDescription().toLowerCase(Locale.getDefault()).contains(query));
+                    boolean matchesStatus = "All statuses".equals(state.status) || (t.getStatus() != null && t.getStatus().equals(state.status));
+                    boolean matchesPriority = "All priorities".equals(state.priority) || (t.getPriority() != null && t.getPriority().equals(state.priority));
+                    boolean matchesDate = true;
+                    if ("Today".equals(state.date)) {
+                        matchesDate = t.isDueToday();
+                    } else if ("Overdue".equals(state.date)) {
+                        matchesDate = t.isOverdue();
+                    } else if ("No due date".equals(state.date)) {
+                        matchesDate = !t.hasDueDate();
+                    }
+
+                    if (matchesQuery && matchesStatus && matchesPriority && matchesDate) {
+                        shownTasks.add(t);
+                    }
+                }
+
+                // Sorting
+                shownTasks.sort((t1, t2) -> {
+                    String sort = state.sort;
+                    if ("Due date (earliest first)".equals(sort)) {
+                        long d1 = t1.hasDueDate() ? t1.getDueDateMillis() : Long.MAX_VALUE;
+                        long d2 = t2.hasDueDate() ? t2.getDueDateMillis() : Long.MAX_VALUE;
+                        int cmp = Long.compare(d1, d2);
+                        if (cmp != 0) return cmp;
+                        return Long.compare(t2.getCreatedAt(), t1.getCreatedAt());
+                    } else if ("Due date (latest first)".equals(sort)) {
+                        long d1 = t1.hasDueDate() ? t1.getDueDateMillis() : -1L;
+                        long d2 = t2.hasDueDate() ? t2.getDueDateMillis() : -1L;
+                        if (!t1.hasDueDate() && !t2.hasDueDate()) {
+                            return Long.compare(t2.getCreatedAt(), t1.getCreatedAt());
+                        }
+                        if (!t1.hasDueDate()) return 1;
+                        if (!t2.hasDueDate()) return -1;
+                        int cmp = Long.compare(d2, d1);
+                        if (cmp != 0) return cmp;
+                        return Long.compare(t2.getCreatedAt(), t1.getCreatedAt());
+                    } else if ("Priority (High to Low)".equals(sort)) {
+                        int p1 = getPriorityRank(t1.getPriority());
+                        int p2 = getPriorityRank(t2.getPriority());
+                        int cmp = Integer.compare(p1, p2);
+                        if (cmp != 0) return cmp;
+                        return Long.compare(t2.getCreatedAt(), t1.getCreatedAt());
+                    } else { // "Newest first"
+                        return Long.compare(t2.getCreatedAt(), t1.getCreatedAt());
+                    }
+                });
+            }
+
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+
+            int totalTasks = project != null ? project.getTotalTasks() : 0;
+            int shownCount = shownTasks.size();
+
+            if (tvShowing != null) {
+                String showingText = String.format(Locale.getDefault(), "Showing %d of %d tasks", shownCount, totalTasks);
+                SpannableString span = new SpannableString(showingText);
+                String xStr = String.valueOf(shownCount);
+                int start = showingText.indexOf(xStr);
+                if (start >= 0) {
+                    span.setSpan(new StyleSpan(Typeface.BOLD), start, start + xStr.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+                tvShowing.setText(span);
+            }
+
+            // Empty states handling
+            if (totalTasks == 0) {
+                lvTasks.setVisibility(View.GONE);
+                layoutEmptyNone.setVisibility(View.VISIBLE);
+                layoutEmptyFiltered.setVisibility(View.GONE);
+            } else if (shownCount == 0) {
+                lvTasks.setVisibility(View.GONE);
+                layoutEmptyNone.setVisibility(View.GONE);
+                layoutEmptyFiltered.setVisibility(View.VISIBLE);
+            } else {
+                lvTasks.setVisibility(View.VISIBLE);
+                layoutEmptyNone.setVisibility(View.GONE);
+                layoutEmptyFiltered.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private int getPriorityRank(String priority) {
+        if ("High".equals(priority)) return 0;
+        if ("Normal".equals(priority)) return 1;
+        if ("Low".equals(priority)) return 2;
+        return 1;
+    }
+
+    private void updatePillLabels() {
+        if (getActivity() instanceof ProjectHost) {
+            ProjectHost host = (ProjectHost) getActivity();
+            TaskFilterState state = host.getTaskFilterState();
+
+            tvFilterStatus.setText("All statuses".equals(state.status) ? "Status: All" : "Status: " + state.status);
+            tvFilterPriority.setText("All priorities".equals(state.priority) ? "Priority: All" : "Priority: " + state.priority);
+            tvFilterDate.setText("All dates".equals(state.date) ? "Date: All" : "Date: " + state.date);
+            tvFilterSort.setText("Due date (earliest first)".equals(state.sort) ? "Sort: Due date" : "Sort: " + state.sort);
+        }
+    }
+
+    private void resetAllFilters() {
+        ProjectHost host = (ProjectHost) getActivity();
+        TaskFilterState state = host.getTaskFilterState();
+        state.reset();
+
+        isUpdatingText = true;
+        if (etSearchTasks != null) {
+            etSearchTasks.setText("");
+        }
+        isUpdatingText = false;
+
+        updatePillLabels();
+        applyFilters();
+    }
+
+    private void showStatusDialog() {
+        ProjectHost host = (ProjectHost) getActivity();
+        TaskFilterState state = host.getTaskFilterState();
+        String[] options = {"All statuses", "To do", "In progress", "Done"};
+        int selected = 0;
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].equals(state.status)) {
+                selected = i;
+                break;
+            }
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filter Status")
+                .setSingleChoiceItems(options, selected, (dialog, which) -> {
+                    state.status = options[which];
+                    updatePillLabels();
+                    applyFilters();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showPriorityDialog() {
+        ProjectHost host = (ProjectHost) getActivity();
+        TaskFilterState state = host.getTaskFilterState();
+        String[] options = {"All priorities", "High", "Normal", "Low"};
+        int selected = 0;
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].equals(state.priority)) {
+                selected = i;
+                break;
+            }
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filter Priority")
+                .setSingleChoiceItems(options, selected, (dialog, which) -> {
+                    state.priority = options[which];
+                    updatePillLabels();
+                    applyFilters();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showDateDialog() {
+        ProjectHost host = (ProjectHost) getActivity();
+        TaskFilterState state = host.getTaskFilterState();
+        String[] options = {"All dates", "Today", "Overdue", "No due date"};
+        int selected = 0;
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].equals(state.date)) {
+                selected = i;
+                break;
+            }
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filter Date")
+                .setSingleChoiceItems(options, selected, (dialog, which) -> {
+                    state.date = options[which];
+                    updatePillLabels();
+                    applyFilters();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showSortDialog() {
+        ProjectHost host = (ProjectHost) getActivity();
+        TaskFilterState state = host.getTaskFilterState();
+        String[] options = {"Due date (earliest first)", "Due date (latest first)", "Priority (High to Low)", "Newest first"};
+        int selected = 0;
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].equals(state.sort)) {
+                selected = i;
+                break;
+            }
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Sort Tasks")
+                .setSingleChoiceItems(options, selected, (dialog, which) -> {
+                    state.sort = options[which];
+                    updatePillLabels();
+                    applyFilters();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    @Override
+    public void onTaskClicked(TaskItem task) {
+        ProjectHost host = (ProjectHost) requireActivity();
+        host.showTaskDialog(task);
+    }
+
+    @Override
+    public void onTaskToggled(TaskItem task, boolean checked) {
+        task.setStatus(checked ? TaskItem.STATUS_DONE : TaskItem.STATUS_TODO);
+        ProjectHost host = (ProjectHost) requireActivity();
+        host.onProjectChanged();
+        if (lvTasks != null) {
+            lvTasks.post(this::applyFilters);
+        }
+    }
+
+    private void init(View view) {
+        etSearchTasks = view.findViewById(R.id.et_search_tasks);
+        tvFilterStatus = view.findViewById(R.id.tv_filter_status);
+        tvFilterPriority = view.findViewById(R.id.tv_filter_priority);
+        tvFilterDate = view.findViewById(R.id.tv_filter_date);
+        tvFilterSort = view.findViewById(R.id.tv_filter_sort);
+        tvShowing = view.findViewById(R.id.tv_showing);
+        tvResetFilters = view.findViewById(R.id.tv_reset_filters);
+        lvTasks = view.findViewById(R.id.lv_tasks);
+        layoutEmptyNone = view.findViewById(R.id.layout_empty_none);
+        layoutEmptyFiltered = view.findViewById(R.id.layout_empty_filtered);
+        btnAddTask = view.findViewById(R.id.btn_add_task);
+        btnEmptyAddTask = view.findViewById(R.id.btn_empty_add_task);
+        btnEmptyResetFilters = view.findViewById(R.id.btn_empty_reset_filters);
+    }
+}
