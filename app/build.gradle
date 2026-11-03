@@ -39,6 +39,8 @@ dependencies {
     //noinspection GradleDependency
     //noinspection UseTomlInstead
     implementation 'androidx.activity:activity:1.13.0'
+    //noinspection UseTomlInstead
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
     //noinspection GradleDynamicVersion
     testImplementation 'junit:junit:4.13.2'
     //noinspection UseTomlInstead
