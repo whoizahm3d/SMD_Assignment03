@@ -11,4 +11,5 @@ public interface ProjectHost {
     void selectTab(int index);
     void showTaskDialog(TaskItem taskOrNull);
     void openTasksWithFilter(String status, String dateFilter);
+    void refreshVisibleFragments();
 }
