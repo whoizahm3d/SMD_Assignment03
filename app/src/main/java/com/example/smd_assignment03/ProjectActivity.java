@@ -309,6 +309,8 @@ public class ProjectActivity extends AppCompatActivity implements ProjectHost {
                 ((OverviewFragment) f).refresh();
             } else if (f instanceof TasksFragment) {
                 ((TasksFragment) f).refresh();
+            } else if (f instanceof FilesFragment) {
+                ((FilesFragment) f).refresh();
             }
         }
     }
