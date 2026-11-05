@@ -58,7 +58,8 @@ public class ProjectActivity extends AppCompatActivity implements ProjectHost {
         setContentView(R.layout.activity_project);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            int basePadding = (int) (16 * getResources().getDisplayMetrics().density);
+            v.setPadding(basePadding + systemBars.left, basePadding + systemBars.top, basePadding + systemBars.right, basePadding + systemBars.bottom);
             return insets;
         });
 
@@ -303,6 +304,7 @@ public class ProjectActivity extends AppCompatActivity implements ProjectHost {
         selectTab(1);
     }
 
+    @Override
     public void refreshVisibleFragments() {
         for (Fragment f : getSupportFragmentManager().getFragments()) {
             if (f instanceof OverviewFragment) {

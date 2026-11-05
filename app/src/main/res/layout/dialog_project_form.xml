@@ -13,7 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
-            android:text="Project name"
+            android:text="@string/hint_project_name"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
-            android:text="Project tag"
+            android:text="@string/hint_project_tag"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -57,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
-            android:text="Project description"
+            android:text="@string/hint_project_description"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -110,10 +110,11 @@
                     android:id="@+id/btn_pick_attachment"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
-                    android:background="@drawable/bg_btn_small_outline"
-                    android:text="@string/choose_file"
+                    android:background="@drawable/bg_btn_primary"
+                    android:paddingHorizontal="16dp"
+                    android:text="@string/select"
                     android:textAllCaps="false"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/white"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>

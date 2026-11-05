@@ -44,7 +44,8 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            int basePadding = (int) (16 * getResources().getDisplayMetrics().density);
+            v.setPadding(basePadding + systemBars.left, basePadding + systemBars.top, basePadding + systemBars.right, basePadding + systemBars.bottom);
             return insets;
         });
 
