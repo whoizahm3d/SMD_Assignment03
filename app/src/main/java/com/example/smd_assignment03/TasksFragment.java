@@ -212,9 +212,8 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
                 });
             }
 
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
-            }
+            adapter = new TaskAdapter(requireContext(), shownTasks, this);
+            lvTasks.setAdapter(adapter);
 
             int totalTasks = project != null ? project.getTotalTasks() : 0;
             int shownCount = shownTasks.size();

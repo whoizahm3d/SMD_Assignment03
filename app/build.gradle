@@ -41,6 +41,7 @@ dependencies {
     implementation 'androidx.activity:activity:1.13.0'
     //noinspection UseTomlInstead
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.4.0'
     //noinspection GradleDynamicVersion
     testImplementation 'junit:junit:4.13.2'
     //noinspection UseTomlInstead

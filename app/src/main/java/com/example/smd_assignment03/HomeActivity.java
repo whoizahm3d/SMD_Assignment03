@@ -7,7 +7,6 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -18,6 +17,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.content.IntentCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smd_assignment03.models.AttachmentLink;
 import com.example.smd_assignment03.models.Project;
@@ -30,7 +31,7 @@ public class HomeActivity extends AppCompatActivity {
     ArrayList<Project> allProjects;
     ArrayList<Project> shownProjects;
     ProjectAdapter adapter;
-    ListView lvProjects;
+    RecyclerView rvProjects;
     EditText etSearchProjects;
     TextView tvShowingCount;
     TextView tvEmptyProjects;
@@ -54,8 +55,13 @@ public class HomeActivity extends AppCompatActivity {
         allProjects = SampleData.createProjects();
         shownProjects = new ArrayList<>(allProjects);
 
-        adapter = new ProjectAdapter(this, shownProjects);
-        lvProjects.setAdapter(adapter);
+        adapter = new ProjectAdapter(selectedProject -> {
+            Intent intent = new Intent(HomeActivity.this, ProjectActivity.class);
+            intent.putExtra("key_project", selectedProject);
+            launcherProject.launch(intent);
+        });
+        rvProjects.setLayoutManager(new LinearLayoutManager(this));
+        rvProjects.setAdapter(adapter);
 
         applySearch();
 
@@ -72,13 +78,6 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
             }
-        });
-
-        lvProjects.setOnItemClickListener((parent, view, position, id) -> {
-            Project selectedProject = shownProjects.get(position);
-            Intent intent = new Intent(HomeActivity.this, ProjectActivity.class);
-            intent.putExtra("key_project", selectedProject);
-            launcherProject.launch(intent);
         });
 
         launcherProject = registerForActivityResult(
@@ -144,7 +143,7 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
 
-        adapter.notifyDataSetChanged();
+        adapter.submitList(new ArrayList<>(shownProjects));
 
         if (tvShowingCount != null)
         {
@@ -165,7 +164,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void init() {
-        lvProjects = findViewById(R.id.lv_projects);
+        rvProjects = findViewById(R.id.rv_projects);
         etSearchProjects = findViewById(R.id.et_search_projects);
         tvShowingCount = findViewById(R.id.tv_showing_count);
         tvEmptyProjects = findViewById(R.id.tv_empty_projects);

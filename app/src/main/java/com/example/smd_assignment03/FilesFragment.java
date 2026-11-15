@@ -190,9 +190,8 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
                 }
             }
 
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
-            }
+            adapter = new AttachmentAdapter(requireContext(), shownLinks, this);
+            lvFiles.setAdapter(adapter);
 
             int totalFiles = project != null ? project.getAttachmentCount() : 0;
             int shownCount = shownLinks.size();
