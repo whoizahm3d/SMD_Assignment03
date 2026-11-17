@@ -13,18 +13,23 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smd_assignment03.models.Project;
 import com.example.smd_assignment03.models.TaskItem;
+import com.example.smd_assignment03.models.TaskListItem;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class TasksFragment extends Fragment implements TaskAdapter.TaskActionListener {
@@ -39,7 +44,7 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
     TextView tvFilterSort;
     TextView tvShowing;
     TextView tvResetFilters;
-    ListView lvTasks;
+    RecyclerView rvTasks;
     LinearLayout layoutEmptyNone;
     LinearLayout layoutEmptyFiltered;
     Button btnAddTask;
@@ -79,8 +84,102 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
         super.onViewCreated(view, savedInstanceState);
         init(view);
 
-        adapter = new TaskAdapter(requireContext(), shownTasks, this);
-        lvTasks.setAdapter(adapter);
+        adapter = new TaskAdapter(requireContext(), this);
+        rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvTasks.setAdapter(adapter);
+
+        ItemTouchHelper.SimpleCallback itemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                int position = viewHolder.getAbsoluteAdapterPosition();
+                if (position == RecyclerView.NO_POSITION || !adapter.isTaskRow(position)) {
+                    return 0;
+                }
+                return super.getMovementFlags(recyclerView, viewHolder);
+            }
+
+            @Override
+            public int getSwipeDirs(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                int position = viewHolder.getAbsoluteAdapterPosition();
+                if (position == RecyclerView.NO_POSITION || !adapter.isTaskRow(position)) {
+                    return 0;
+                }
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAbsoluteAdapterPosition();
+                if (position == RecyclerView.NO_POSITION) {
+                    return;
+                }
+                TaskListItem item = adapter.getItemAt(position);
+                if (item == null || item.getType() != TaskListItem.TYPE_TASK) {
+                    adapter.notifyItemChanged(position);
+                    return;
+                }
+                TaskItem task = item.getTaskItem();
+                if (task == null) {
+                    adapter.notifyItemChanged(position);
+                    return;
+                }
+
+                if (direction == ItemTouchHelper.LEFT) {
+                    if (task.isDone()) {
+                        Toast.makeText(requireContext(), "Task already completed", Toast.LENGTH_SHORT).show();
+                        adapter.notifyItemChanged(position);
+                        return;
+                    }
+
+                    task.setStatus(TaskItem.STATUS_DONE);
+                    if (getActivity() instanceof ProjectHost) {
+                        ProjectHost host = (ProjectHost) getActivity();
+                        host.onProjectChanged();
+                        host.refreshVisibleFragments();
+                    }
+                    applyFilters();
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    final boolean[] actionTaken = {false};
+
+                    AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                            .setTitle("Delete task")
+                            .setMessage("Are you sure you want to delete this task?")
+                            .setNegativeButton("Cancel", (d, w) -> {
+                                actionTaken[0] = true;
+                                adapter.notifyItemChanged(position);
+                            })
+                            .setPositiveButton("Delete", (d, w) -> {
+                                actionTaken[0] = true;
+                                if (getActivity() instanceof ProjectHost) {
+                                    ProjectHost host = (ProjectHost) getActivity();
+                                    Project project = host.getProject();
+                                    if (project != null) {
+                                        project.removeTaskById(task.getId());
+                                        host.onProjectChanged();
+                                        host.refreshVisibleFragments();
+                                        applyFilters();
+                                    }
+                                }
+                            })
+                            .create();
+
+                    dialog.setOnDismissListener(d -> {
+                        if (!actionTaken[0]) {
+                            adapter.notifyItemChanged(position);
+                        }
+                    });
+
+                    dialog.show();
+                }
+            }
+        };
+
+        new ItemTouchHelper(itemTouchCallback).attachToRecyclerView(rvTasks);
 
         refresh();
 
@@ -212,8 +311,10 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
                 });
             }
 
-            adapter = new TaskAdapter(requireContext(), shownTasks, this);
-            lvTasks.setAdapter(adapter);
+            List<TaskListItem> groupedItems = TaskGroupingHelper.groupTasks(shownTasks);
+            if (adapter != null) {
+                adapter.submitList(groupedItems);
+            }
 
             int totalTasks = project != null ? project.getTotalTasks() : 0;
             int shownCount = shownTasks.size();
@@ -231,15 +332,15 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
 
             // Empty states handling
             if (totalTasks == 0) {
-                lvTasks.setVisibility(View.GONE);
+                rvTasks.setVisibility(View.GONE);
                 layoutEmptyNone.setVisibility(View.VISIBLE);
                 layoutEmptyFiltered.setVisibility(View.GONE);
             } else if (shownCount == 0) {
-                lvTasks.setVisibility(View.GONE);
+                rvTasks.setVisibility(View.GONE);
                 layoutEmptyNone.setVisibility(View.GONE);
                 layoutEmptyFiltered.setVisibility(View.VISIBLE);
             } else {
-                lvTasks.setVisibility(View.VISIBLE);
+                rvTasks.setVisibility(View.VISIBLE);
                 layoutEmptyNone.setVisibility(View.GONE);
                 layoutEmptyFiltered.setVisibility(View.GONE);
             }
@@ -387,8 +488,8 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
         task.setStatus(checked ? TaskItem.STATUS_DONE : TaskItem.STATUS_TODO);
         ProjectHost host = (ProjectHost) requireActivity();
         host.onProjectChanged();
-        if (lvTasks != null) {
-            lvTasks.post(this::applyFilters);
+        if (rvTasks != null) {
+            rvTasks.post(this::applyFilters);
         }
     }
 
@@ -400,7 +501,7 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
         tvFilterSort = view.findViewById(R.id.tv_filter_sort);
         tvShowing = view.findViewById(R.id.tv_showing);
         tvResetFilters = view.findViewById(R.id.tv_reset_filters);
-        lvTasks = view.findViewById(R.id.lv_tasks);
+        rvTasks = view.findViewById(R.id.rv_tasks);
         layoutEmptyNone = view.findViewById(R.id.layout_empty_none);
         layoutEmptyFiltered = view.findViewById(R.id.layout_empty_filtered);
         btnAddTask = view.findViewById(R.id.btn_add_task);
