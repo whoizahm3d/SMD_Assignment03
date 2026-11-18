@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +21,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smd_assignment03.models.AttachmentLink;
 import com.example.smd_assignment03.models.CatalogItem;
@@ -40,7 +42,7 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
     TextView tvChipImages;
     TextView tvChipText;
     TextView tvShowing;
-    ListView lvFiles;
+    RecyclerView rvFiles;
     LinearLayout layoutEmptyNone;
     LinearLayout layoutEmptyFiltered;
     Button btnAddAttachment;
@@ -80,8 +82,46 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
         super.onViewCreated(view, savedInstanceState);
         init(view);
 
-        adapter = new AttachmentAdapter(requireContext(), shownLinks, this);
-        lvFiles.setAdapter(adapter);
+        adapter = new AttachmentAdapter(this);
+        rvFiles.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvFiles.setAdapter(adapter);
+
+        ItemTouchHelper.SimpleCallback itemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                int position = viewHolder.getAbsoluteAdapterPosition();
+                if (position == RecyclerView.NO_POSITION) {
+                    return makeMovementFlags(0, 0);
+                }
+                return makeMovementFlags(0, ItemTouchHelper.RIGHT);
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAbsoluteAdapterPosition();
+                if (position == RecyclerView.NO_POSITION) {
+                    return;
+                }
+                AttachmentLink link = adapter.getItemAt(position);
+                if (link == null) {
+                    adapter.notifyItemChanged(position);
+                    return;
+                }
+
+                if (direction == ItemTouchHelper.RIGHT) {
+                    showDeleteAttachmentDialog(link, position);
+                } else {
+                    adapter.notifyItemChanged(position);
+                }
+            }
+        };
+
+        new ItemTouchHelper(itemTouchCallback).attachToRecyclerView(rvFiles);
 
         refresh();
 
@@ -190,8 +230,9 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
                 }
             }
 
-            adapter = new AttachmentAdapter(requireContext(), shownLinks, this);
-            lvFiles.setAdapter(adapter);
+            if (adapter != null) {
+                adapter.submitList(new ArrayList<>(shownLinks));
+            }
 
             int totalFiles = project != null ? project.getAttachmentCount() : 0;
             int shownCount = shownLinks.size();
@@ -214,15 +255,15 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
             }
 
             if (totalFiles == 0) {
-                lvFiles.setVisibility(View.GONE);
+                rvFiles.setVisibility(View.GONE);
                 layoutEmptyNone.setVisibility(View.VISIBLE);
                 layoutEmptyFiltered.setVisibility(View.GONE);
             } else if (shownCount == 0) {
-                lvFiles.setVisibility(View.GONE);
+                rvFiles.setVisibility(View.GONE);
                 layoutEmptyNone.setVisibility(View.GONE);
                 layoutEmptyFiltered.setVisibility(View.VISIBLE);
             } else {
-                lvFiles.setVisibility(View.VISIBLE);
+                rvFiles.setVisibility(View.VISIBLE);
                 layoutEmptyNone.setVisibility(View.GONE);
                 layoutEmptyFiltered.setVisibility(View.GONE);
             }
@@ -304,6 +345,10 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
 
     @Override
     public void onDelete(AttachmentLink link) {
+        showDeleteAttachmentDialog(link, RecyclerView.NO_POSITION);
+    }
+
+    private void showDeleteAttachmentDialog(AttachmentLink link, int position) {
         CatalogItem item = AttachmentCatalog.findById(link.getCatalogId());
         String displayName = item != null ? item.getDisplayName() : "";
 
@@ -314,19 +359,35 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
         tvMessage.setText(String.format(Locale.getDefault(), "Type %s to confirm", displayName));
         etConfirm.setHint(displayName);
 
+        final boolean[] actionTaken = {false};
+
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Delete attachment")
                 .setView(dialogView)
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton("Cancel", (d, w) -> {
+                    actionTaken[0] = true;
+                    if (position != RecyclerView.NO_POSITION) {
+                        adapter.notifyItemChanged(position);
+                    }
+                })
                 .setPositiveButton("Delete", (d, w) -> {
-                    ProjectHost host = (ProjectHost) getActivity();
-                    if (host != null) {
-                        Project project = host.getProject();
-                        if (project != null) {
-                            project.removeAttachmentById(link.getId());
-                            host.onProjectChanged();
-                            refresh();
-                            host.refreshVisibleFragments();
+                    actionTaken[0] = true;
+                    String typed = etConfirm.getText() != null ? etConfirm.getText().toString().trim() : "";
+                    if (typed.equals(displayName)) {
+                        ProjectHost host = (ProjectHost) getActivity();
+                        if (host != null) {
+                            Project project = host.getProject();
+                            if (project != null) {
+                                project.removeAttachmentById(link.getId());
+                                host.onProjectChanged();
+                                refresh();
+                                host.refreshVisibleFragments();
+                            }
+                        }
+                    } else {
+                        Toast.makeText(requireContext(), "Wrong attachment name", Toast.LENGTH_SHORT).show();
+                        if (position != RecyclerView.NO_POSITION) {
+                            adapter.notifyItemChanged(position);
                         }
                     }
                 })
@@ -353,6 +414,12 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
             });
         });
 
+        dialog.setOnDismissListener(d -> {
+            if (!actionTaken[0] && position != RecyclerView.NO_POSITION) {
+                adapter.notifyItemChanged(position);
+            }
+        });
+
         dialog.show();
     }
 
@@ -362,7 +429,7 @@ public class FilesFragment extends Fragment implements AttachmentAdapter.Attachm
         tvChipImages = view.findViewById(R.id.tv_chip_images);
         tvChipText = view.findViewById(R.id.tv_chip_text);
         tvShowing = view.findViewById(R.id.tv_showing);
-        lvFiles = view.findViewById(R.id.lv_files);
+        rvFiles = view.findViewById(R.id.rv_files);
         layoutEmptyNone = view.findViewById(R.id.layout_empty_none);
         layoutEmptyFiltered = view.findViewById(R.id.layout_empty_filtered);
         btnAddAttachment = view.findViewById(R.id.btn_add_attachment);
