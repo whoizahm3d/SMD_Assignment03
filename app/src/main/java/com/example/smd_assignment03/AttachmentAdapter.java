@@ -1,120 +1,130 @@
 package com.example.smd_assignment03;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.smd_assignment03.models.AttachmentLink;
 import com.example.smd_assignment03.models.CatalogItem;
 
-import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 
-public class AttachmentAdapter extends BaseAdapter {
+public class AttachmentAdapter extends ListAdapter<AttachmentLink, AttachmentAdapter.AttachmentViewHolder> {
 
     public interface AttachmentActionListener {
         void onPreview(AttachmentLink link);
         void onDelete(AttachmentLink link);
     }
 
-    private Context context;
-    private ArrayList<AttachmentLink> shownLinks;
-    private AttachmentActionListener listener;
-    private LayoutInflater inflater;
+    private final AttachmentActionListener listener;
 
-    public AttachmentAdapter(Context context, ArrayList<AttachmentLink> shownLinks, AttachmentActionListener listener) {
-        this.context = context;
-        this.shownLinks = shownLinks;
+    public AttachmentAdapter(AttachmentActionListener listener) {
+        super(DIFF_CALLBACK);
         this.listener = listener;
-        this.inflater = LayoutInflater.from(context);
+    }
+
+    public static final DiffUtil.ItemCallback<AttachmentLink> DIFF_CALLBACK = new DiffUtil.ItemCallback<AttachmentLink>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull AttachmentLink oldItem, @NonNull AttachmentLink newItem) {
+            return Objects.equals(oldItem.getId(), newItem.getId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull AttachmentLink oldItem, @NonNull AttachmentLink newItem) {
+            return Objects.equals(oldItem.getCatalogId(), newItem.getCatalogId())
+                    && oldItem.getResId() == newItem.getResId()
+                    && oldItem.getLinkedAt() == newItem.getLinkedAt();
+        }
+    };
+
+    @NonNull
+    @Override
+    public AttachmentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_attachment, parent, false);
+        return new AttachmentViewHolder(view);
     }
 
     @Override
-    public int getCount() {
-        return shownLinks == null ? 0 : shownLinks.size();
+    public void onBindViewHolder(@NonNull AttachmentViewHolder holder, int position) {
+        AttachmentLink link = getItem(position);
+        holder.bind(link, listener);
     }
 
-    @Override
-    public Object getItem(int position) {
-        return shownLinks.get(position);
+    public AttachmentLink getItemAt(int position) {
+        if (position < 0 || position >= getItemCount()) {
+            return null;
+        }
+        return getItem(position);
     }
 
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
-        if (convertView == null)
-        {
-            convertView = inflater.inflate(R.layout.item_attachment, parent, false);
-            holder = new ViewHolder();
-            holder.ivThumb = convertView.findViewById(R.id.iv_thumb);
-            holder.tvFileName = convertView.findViewById(R.id.tv_file_name);
-            holder.tvFileMeta = convertView.findViewById(R.id.tv_file_meta);
-            holder.btnPreview = convertView.findViewById(R.id.btn_preview);
-            holder.ivDelete = convertView.findViewById(R.id.iv_delete);
-            convertView.setTag(holder);
-        }
-        else
-        {
-            holder = (ViewHolder) convertView.getTag();
-        }
-
-        AttachmentLink link = shownLinks.get(position);
-        CatalogItem item = AttachmentCatalog.findById(link.getCatalogId());
-
-        if (item != null)
-        {
-            holder.tvFileName.setText(item.getDisplayName());
-            if ("IMAGE".equals(item.getType()))
-            {
-                holder.ivThumb.setImageResource(item.getResId());
-            }
-            else
-            {
-                holder.ivThumb.setImageResource(R.drawable.ic_text_file);
-            }
-
-            String kind = "IMAGE".equals(item.getType()) ? "Image" : "Document";
-            holder.tvFileMeta.setText(String.format(Locale.getDefault(), "%s • %s", kind, item.getTypeLabel()));
-        }
-        else
-        {
-            holder.tvFileName.setText("Unknown");
-            holder.ivThumb.setImageResource(R.drawable.ic_text_file);
-            holder.tvFileMeta.setText("Unknown");
-        }
-
-        holder.btnPreview.setOnClickListener(v -> {
-            if (listener != null)
-            {
-                listener.onPreview(link);
-            }
-        });
-
-        holder.ivDelete.setOnClickListener(v -> {
-            if (listener != null)
-            {
-                listener.onDelete(link);
-            }
-        });
-
-        return convertView;
-    }
-
-    static class ViewHolder {
+    public static class AttachmentViewHolder extends RecyclerView.ViewHolder {
         ImageView ivThumb;
         TextView tvFileName;
         TextView tvFileMeta;
         Button btnPreview;
         ImageView ivDelete;
+
+        public AttachmentViewHolder(@NonNull View itemView) {
+            super(itemView);
+            ivThumb = itemView.findViewById(R.id.iv_thumb);
+            tvFileName = itemView.findViewById(R.id.tv_file_name);
+            tvFileMeta = itemView.findViewById(R.id.tv_file_meta);
+            btnPreview = itemView.findViewById(R.id.btn_preview);
+            ivDelete = itemView.findViewById(R.id.iv_delete);
+        }
+
+        public void bind(AttachmentLink link, AttachmentActionListener listener) {
+            if (link == null)
+            {
+                return;
+            }
+
+            CatalogItem item = AttachmentCatalog.findById(link.getCatalogId());
+
+            if (item != null)
+            {
+                tvFileName.setText(item.getDisplayName());
+                if ("IMAGE".equals(item.getType()))
+                {
+                    ivThumb.setImageResource(item.getResId());
+                }
+                else
+                {
+                    ivThumb.setImageResource(R.drawable.ic_text_file);
+                }
+
+                String kind = "IMAGE".equals(item.getType()) ? "Image" : "Document";
+                tvFileMeta.setText(String.format(Locale.getDefault(), "%s • %s", kind, item.getTypeLabel()));
+            }
+            else
+            {
+                tvFileName.setText("Unknown");
+                ivThumb.setImageResource(R.drawable.ic_text_file);
+                tvFileMeta.setText("Unknown");
+            }
+
+            btnPreview.setOnClickListener(v -> {
+                if (listener != null)
+                {
+                    listener.onPreview(link);
+                }
+            });
+
+            ivDelete.setOnClickListener(v -> {
+                if (listener != null)
+                {
+                    listener.onDelete(link);
+                }
+            });
+        }
     }
 }
