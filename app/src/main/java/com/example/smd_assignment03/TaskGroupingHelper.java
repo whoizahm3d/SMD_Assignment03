@@ -54,6 +54,29 @@ public class TaskGroupingHelper {
         return result;
     }
 
+    public static String getTaskGroup(TaskItem task) {
+        if (task == null)
+        {
+            return GROUP_TODO;
+        }
+        if (task.isOverdue())
+        {
+            return GROUP_OVERDUE;
+        }
+        else if (task.isDone() || TaskItem.STATUS_DONE.equals(task.getStatus()))
+        {
+            return GROUP_DONE;
+        }
+        else if (TaskItem.STATUS_IN_PROGRESS.equals(task.getStatus()))
+        {
+            return GROUP_IN_PROGRESS;
+        }
+        else
+        {
+            return GROUP_TODO;
+        }
+    }
+
     private static void addGroup(List<TaskListItem> result, String groupName, List<TaskItem> groupTasks) {
         if (groupTasks != null && !groupTasks.isEmpty())
         {
