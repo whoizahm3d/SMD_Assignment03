@@ -29,8 +29,11 @@ import com.example.smd_assignment03.models.TaskItem;
 import com.example.smd_assignment03.models.TaskListItem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 public class TasksFragment extends Fragment implements TaskAdapter.TaskActionListener {
 
@@ -88,19 +91,79 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
         rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvTasks.setAdapter(adapter);
 
-        ItemTouchHelper.SimpleCallback itemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback itemTouchCallback = new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT
+        ) {
+            private boolean isDragging = false;
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true;
+            }
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
+                int sourcePos = viewHolder.getAbsoluteAdapterPosition();
+                int targetPos = target.getAbsoluteAdapterPosition();
+                if (sourcePos == RecyclerView.NO_POSITION || targetPos == RecyclerView.NO_POSITION) {
+                    return false;
+                }
+                if (!adapter.isTaskRow(sourcePos) || !adapter.isTaskRow(targetPos)) {
+                    return false;
+                }
+
+                TaskListItem sourceItem = adapter.getItemAt(sourcePos);
+                TaskListItem targetItem = adapter.getItemAt(targetPos);
+                if (sourceItem == null || targetItem == null || sourceItem.getTaskItem() == null || targetItem.getTaskItem() == null) {
+                    return false;
+                }
+
+                String sourceGroup = TaskGroupingHelper.getTaskGroup(sourceItem.getTaskItem());
+                String targetGroup = TaskGroupingHelper.getTaskGroup(targetItem.getTaskItem());
+                if (!Objects.equals(sourceGroup, targetGroup)) {
+                    return false; // Do not allow crossing groups
+                }
+
+                List<TaskListItem> currentList = new ArrayList<>(adapter.getCurrentList());
+                if (sourcePos < 0 || sourcePos >= currentList.size() || targetPos < 0 || targetPos >= currentList.size()) {
+                    return false;
+                }
+
+                TaskListItem moved = currentList.remove(sourcePos);
+                currentList.add(targetPos, moved);
+                adapter.submitList(currentList);
+                adapter.notifyItemMoved(sourcePos, targetPos);
+                return true;
+            }
+
+            @Override
+            public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                    isDragging = true;
+                }
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                if (isDragging) {
+                    isDragging = false;
+                    saveTaskOrderToProject();
+                    applyFilters();
+                }
             }
 
             @Override
             public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                 int position = viewHolder.getAbsoluteAdapterPosition();
                 if (position == RecyclerView.NO_POSITION || !adapter.isTaskRow(position)) {
-                    return 0;
+                    return makeMovementFlags(0, 0); // Headers return no drag or swipe flags
                 }
-                return super.getMovementFlags(recyclerView, viewHolder);
+                int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+                int swipeFlags = ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
+                return makeMovementFlags(dragFlags, swipeFlags);
             }
 
             @Override
@@ -221,6 +284,52 @@ public class TasksFragment extends Fragment implements TaskAdapter.TaskActionLis
             ProjectHost host = (ProjectHost) requireActivity();
             host.showTaskDialog(null);
         });
+    }
+
+    private void saveTaskOrderToProject() {
+        if (getActivity() instanceof ProjectHost) {
+            ProjectHost host = (ProjectHost) getActivity();
+            Project project = host.getProject();
+            if (project == null || project.getTasks() == null) {
+                return;
+            }
+
+            List<TaskItem> adapterTasks = new ArrayList<>();
+            for (TaskListItem item : adapter.getCurrentList()) {
+                if (item.getType() == TaskListItem.TYPE_TASK && item.getTaskItem() != null) {
+                    adapterTasks.add(item.getTaskItem());
+                }
+            }
+
+            if (adapterTasks.isEmpty()) {
+                return;
+            }
+
+            Set<String> adapterTaskIds = new HashSet<>();
+            for (TaskItem t : adapterTasks) {
+                adapterTaskIds.add(t.getId());
+            }
+
+            ArrayList<TaskItem> newProjectTasks = new ArrayList<>();
+            int adapterIndex = 0;
+            for (TaskItem originalTask : project.getTasks()) {
+                if (adapterTaskIds.contains(originalTask.getId())) {
+                    while (adapterIndex < adapterTasks.size()) {
+                        TaskItem nextAdapterTask = adapterTasks.get(adapterIndex++);
+                        newProjectTasks.add(nextAdapterTask);
+                        break;
+                    }
+                } else {
+                    newProjectTasks.add(originalTask);
+                }
+            }
+            while (adapterIndex < adapterTasks.size()) {
+                newProjectTasks.add(adapterTasks.get(adapterIndex++));
+            }
+
+            project.setTasks(newProjectTasks);
+            host.onProjectChanged();
+        }
     }
 
     @Override
